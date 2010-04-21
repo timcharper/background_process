@@ -4,6 +4,8 @@ This is like popen4, but provides several convenience methods for interacting
 with the process. It only works on UNIX and Ruby implementations that support 
 fork and native UNIX I/O streams.
 
+"Click here for Complete Documentation":http://rdoc.info/projects/timcharper/background_process
+
 Example:
 
 <pre>
