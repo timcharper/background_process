@@ -1,0 +1,39 @@
+h1. Background Process
+
+This is like popen4, but provides several convenience methods for interacting 
+with the process. It only works on UNIX and Ruby implementations that support 
+fork and native UNIX I/O streams.
+
+Example:
+
+<pre>
+process = BackgroundProcess.run("sh -c 'sleep 1; exit 1'")
+process.running? # => true
+process.wait # => #<Process::Status: pid=34774,exited(1)>
+process.running? #=> true
+process.exitstatus # => 1
+</pre>
+
+<pre>
+process = BackgroundProcess.run("sh -c 'sleep 1; exit 1'")
+process.kill("KILL") # => true
+process.running? # => false
+process.exitstatus # => nil
+</pre>
+
+h2. Common signal names
+
+| Name   | id |
+| HUP    | 1  |
+| INT    | 2  |
+| QUIT   | 3  |
+| ABRT   | 6  |
+| KILL   | 9  |
+| ALRM   | 14 |
+| TERM   | 15 |
+| USR1   | 30 |
+| USR2   | 31 |
+
+h2. Author
+
+Tim Harper, on behalf of Lead Media Partners
