@@ -59,4 +59,56 @@ describe BackgroundProcess do
       (Time.now - started_waiting).should be_close(0.5, 0.1)
     end
   end
+
+  describe "#detect" do
+    it "calls the provided block for every line outputted, and returns the first non-false value" do
+      process = BackgroundProcess.run("bash -c 'a=0; while sleep 0.1; do a=$(($a + 1)); echo $a; done'")
+      result = process.detect do |line|
+        "golden" if line.strip == "3"
+      end
+      result.should == "golden"
+      process.kill
+    end
+
+    it "yields the stream if two parameters are provided on the block" do
+      process = BackgroundProcess.run("bash -c 'a=0; while sleep 0.1; do a=$(($a + 1)); echo $a 1>&2; done'")
+      result = process.detect(:both, 1) do |stream, line|
+        "golden" if stream == process.stderr && line.strip == "3"
+      end
+      result.should == "golden"
+      process.kill
+    end
+
+    it "aborts if the provided timeout is reached" do
+      process = BackgroundProcess.run("sleep 2")
+      result = process.detect(:both, 0.1) do |stream, line|
+        true
+      end
+      result.should be_nil
+      process.kill
+    end
+
+    it "monitors the specified stream" do
+      process = BackgroundProcess.run("bash -c 'a=0; while sleep 0.1; do a=$(($a + 1)); echo $a; echo $a 1>&2; done'")
+      output = []
+      process.detect(:stdout) do |line|
+        output << line.to_i
+        true if line.to_i == 3
+      end
+
+      process.detect(:stderr) do |line|
+        output << line.to_i
+        true if line.to_i == 3
+      end
+
+      output.should == [1, 2, 3, 1, 2, 3]
+    end
+
+    it "never yields if nothing occurs on specified streams" do
+      process = BackgroundProcess.run("bash -c 'a=0; while sleep 0.1; do a=$(($a + 1)); echo $a; done'")
+      process.detect(:stderr, 1) do |line|
+        raise(Spec::Expectations::ExpectationNotMetError, "expected to not yield the block")
+      end
+    end
+  end
 end

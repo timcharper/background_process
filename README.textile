@@ -21,6 +21,20 @@ process.running? # => false
 process.exitstatus # => nil
 </pre>
 
+<pre>
+process = BackgroundProcess.run("sh -c '
+  echo Service Starting
+  sleep 2
+  echo Service Started 1>&2
+'")
+if process.detect(:stderr, 10) { |line| line.include?("Service Started") }
+  puts "Service was started!"
+else
+  puts "Service failed to start!"
+end
+process.kill
+</pre>
+
 h2. Common signal names
 
 | Name   | id |
