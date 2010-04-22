@@ -110,5 +110,20 @@ describe BackgroundProcess do
         raise(Spec::Expectations::ExpectationNotMetError, "expected to not yield the block")
       end
     end
+
+    it "quits when the process does" do
+      process = BackgroundProcess.run("sleep 0.3")
+      started_waiting = Time.now
+      result = process.detect(:both, 1) do |line|
+        line.should_not be_nil
+      end
+      result.should be_nil
+      (Time.now - started_waiting).should < 0.4
+    end
+
+    it "yields the very last bit of the process output" do
+      process = BackgroundProcess.run("echo hello; printf hi")
+      process.detect(:both, 1) { |line| line == "hi" }.should == true
+    end
   end
 end

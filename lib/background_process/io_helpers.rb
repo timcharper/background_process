@@ -4,17 +4,18 @@ module BackgroundProcess::IOHelpers
     begin
       Timeout::timeout(timeout) do
         # Something that should be interrupted if it takes too much time...
-        while true
-          available_streams, _, _ = Kernel.select(streams, nil, nil, 1)
-          available_streams.each do |s|
+        until streams.empty?
+          active_streams, _, _ = Kernel.select(streams, nil, nil, 1)
+          active_streams.each do |s|
+            (streams -= [s]; next) if s.eof?
             content = s.gets
             if result = (block.arity == 1 ? yield(content) : yield(s, content))
               return result
             end
-          end if available_streams
+          end if active_streams
         end
       end
-      true
+      nil
     rescue Timeout::Error
       nil
     end
