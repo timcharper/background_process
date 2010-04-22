@@ -45,7 +45,7 @@ describe BackgroundProcess do
 
   describe "#exitstatus" do
     it "returns the exit status of a process after it exits." do
-      process = BackgroundProcess.run("bash -c 'sleep 1; exit 1'")
+      process = BackgroundProcess.run("bash -c 'sleep 0.1; exit 1'")
       process.exitstatus.should == 1
       process.exitstatus.should == 1
     end
@@ -55,14 +55,14 @@ describe BackgroundProcess do
     it "waits for a process with timeout" do
       process = BackgroundProcess.run("sleep 3")
       started_waiting = Time.now
-      process.wait(0.5).should be_false
-      (Time.now - started_waiting).should be_close(0.5, 0.1)
+      process.wait(0.1).should be_false
+      (Time.now - started_waiting).should be_close(0.1, 0.05)
     end
   end
 
   describe "#detect" do
     it "calls the provided block for every line outputted, and returns the first non-false value" do
-      process = BackgroundProcess.run("bash -c 'a=0; while sleep 0.1; do a=$(($a + 1)); echo $a; done'")
+      process = BackgroundProcess.run("bash -c 'a=0; while sleep 0.05; do a=$(($a + 1)); echo $a; done'")
       result = process.detect do |line|
         "golden" if line.strip == "3"
       end
@@ -71,7 +71,7 @@ describe BackgroundProcess do
     end
 
     it "yields the stream if two parameters are provided on the block" do
-      process = BackgroundProcess.run("bash -c 'a=0; while sleep 0.1; do a=$(($a + 1)); echo $a 1>&2; done'")
+      process = BackgroundProcess.run("bash -c 'a=0; while sleep 0.05; do a=$(($a + 1)); echo $a 1>&2; done'")
       result = process.detect(:both, 1) do |stream, line|
         "golden" if stream == process.stderr && line.strip == "3"
       end
@@ -81,7 +81,7 @@ describe BackgroundProcess do
 
     it "aborts if the provided timeout is reached" do
       process = BackgroundProcess.run("sleep 2")
-      result = process.detect(:both, 0.1) do |stream, line|
+      result = process.detect(:both, 0.05) do |stream, line|
         true
       end
       result.should be_nil
@@ -89,7 +89,7 @@ describe BackgroundProcess do
     end
 
     it "monitors the specified stream" do
-      process = BackgroundProcess.run("bash -c 'a=0; while sleep 0.1; do a=$(($a + 1)); echo $a; echo $a 1>&2; done'")
+      process = BackgroundProcess.run("bash -c 'a=0; while sleep 0.05; do a=$(($a + 1)); echo $a; echo $a 1>&2; done'")
       output = []
       process.detect(:stdout) do |line|
         output << line.to_i
@@ -105,7 +105,7 @@ describe BackgroundProcess do
     end
 
     it "never yields if nothing occurs on specified streams" do
-      process = BackgroundProcess.run("bash -c 'a=0; while sleep 0.1; do a=$(($a + 1)); echo $a; done'")
+      process = BackgroundProcess.run("bash -c 'echo hi'")
       process.detect(:stderr, 1) do |line|
         raise(Spec::Expectations::ExpectationNotMetError, "expected to not yield the block")
       end
