@@ -12,7 +12,7 @@ Example:
 process = BackgroundProcess.run("sh -c 'sleep 1; exit 1'")
 process.running? # => true
 process.wait # => #<Process::Status: pid=34774,exited(1)>
-process.running? #=> true
+process.running? #=> false
 process.exitstatus # => 1
 </pre>
 
