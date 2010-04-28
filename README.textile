@@ -1,7 +1,7 @@
 h1. Background Process
 
-This is like popen4, but provides several convenience methods for interacting 
-with the process. It only works on UNIX and Ruby implementations that support 
+This is like popen4, but provides several convenience methods for interacting
+with the process. It only works on UNIX and Ruby implementations that support
 fork and native UNIX I/O streams.
 
 "Click here for Complete Documentation":http://rdoc.info/projects/timcharper/background_process
@@ -54,20 +54,28 @@ h2. A word about buffered output
 
 Some processes (like Ruby) buffer their output if they detect that they aren't
 attached to a tty. This means that unless the program explicitly calls
-STDOUT.flush, much of the output won't be available for reading until the buffer
-is full, forcing it to be flushed.
+STDOUT.flush, much of the output won't be available for reading until the
+buffer is full, forcing it to be flushed.
 
-This gem provides PTYBackgroundProcess which will wrap the command any pseudo-
-terminal interface. This has the advantage of forcing many programs to not
-buffer their output, but at a disadvantage too (you can't get the exit status of
-the process, you lose any output that hasn't been read yet when the process
-exits, and stderr gets merged into stdout). It seems there should be ways to
-work around these limitations, but I wasn't able to figure out an way to do it
-(without resorting to C code at least). Given your circumstances, this may fit
-your needs and be a viable solution to you.
+You can force the output of a ruby script to be unbuffered by using a wrapper
+like the following:
 
-Please see the documentation for BackgroundProcess.run for a description of what
-it means when a process chooses to buffer its output.
+<pre>
+  BackgroundProcess.run %(ruby -e 'STDERR.sync, STDOUT.sync = true, true; $0="./server.rb"; load "server.rb"')
+</pre>
+
+If no such workaround is available, this gem provides PTYBackgroundProcess
+which will wrap the command any pseudo-terminal interface. This has the
+advantage of forcing many programs to not buffer their output, but at a
+disadvantage too (you can't get the exit status of the process, you lose any
+output that hasn't been read yet when the process exits, and stderr gets
+merged into stdout). It seems there should be ways to work around these
+limitations, but I wasn't able to figure out an way to do it (without
+resorting to C code at least). Given your circumstances, this may fit your
+needs and be a viable solution to you.
+
+Please see the documentation for BackgroundProcess.run and
+PTYBackgroundProcess.run for further information.
 
 h2. Author
 
