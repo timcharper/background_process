@@ -1,14 +1,27 @@
 class BackgroundProcess
   attr_reader :stdin, :stdout, :stderr, :pid
 
-  # Initialize a BackgroundProcess task. Don't do this.  Use BackgroundProcess.run instead
-  def initialize(pid, stdin, stdout, stderr)
+  # Initialize a BackgroundProcess task. Don't do this.  Use BackgroundProcess.run or BackgroundProcess.run_pty instead
+  def initialize(pid, stdin, stdout, stderr = nil)
     @pid, @stdin, @stdout, @stderr = pid, stdin, stdout, stderr
     ObjectSpace.define_finalizer(self) { kill }
   end
 
-	# Run a BackgroundProcess
-  def self.run(command, &block)
+
+  # Run a command, connecting it's IO streams (stdin, sterr, stdout) via IO pipes,
+  # which are not tty IO streams.
+  #
+  # Because of this, some programs (like ruby) will buffer their output and only
+  # make it available when it's explicitely flushed (with IO#flush or when the
+  # buffer gets full). This behavior can be overridden by setting the streams to
+  # sync, like this:
+  #
+  # STDOUT.sync, STDERR.sync = true, true
+  #
+  # If you can't control the program and have it explicitly flush its output when it
+  # should, or you can't tell the streams to run in sync mode, see
+  # PTYBackgroundProcess.run for a workaround.
+  def self.run(command)
     command = sanitize_params(command) if command.is_a?(Array)
     child_stdin, parent_stdin = IO::pipe
     parent_stdout, child_stdout = IO::pipe
@@ -80,12 +93,7 @@ class BackgroundProcess
   # * timeout: Total time in seconds to run detect for. If result not found within this time, abort and return nil. Pass nil for no timeout.
   # * &block: the block to call.  If block takes two arguments, it will pass both the stream that received the input (an instance of IO, not the symbol), and the line read from the buffer.
   def detect(which = :both, timeout = nil, &block)
-    streams = case which
-              when :stdout then [stdout]
-              when :stderr then [stderr]
-              when :both   then [stdout, stderr]
-              else raise(ArgumentError, "invalid stream specification: #{which}")
-              end
+    streams = select_streams(which)
     BackgroundProcess::IOHelpers.detect(streams, timeout, &block)
   end
 
@@ -93,5 +101,14 @@ class BackgroundProcess
   # It's protected. What do you care? :P
   def self.sanitize_params(params)
     params.map { |p| p.gsub(' ', '\ ') }.join(" ")
+  end
+
+  def select_streams(which)
+    case which
+    when :stdout then [stdout]
+    when :stderr then [stderr]
+    when :both   then [stdout, stderr]
+    else raise(ArgumentError, "invalid stream specification: #{which}")
+    end.compact
   end
 end
