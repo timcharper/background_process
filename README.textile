@@ -50,6 +50,25 @@ h2. Common signal names
 | USR1   | 30 |
 | USR2   | 31 |
 
+h2. A word about buffered output
+
+Some processes (like Ruby) buffer their output if they detect that they aren't
+attached to a tty. This means that unless the program explicitly calls
+STDOUT.flush, much of the output won't be available for reading until the buffer
+is full, forcing it to be flushed.
+
+This gem provides PTYBackgroundProcess which will wrap the command any pseudo-
+terminal interface. This has the advantage of forcing many programs to not
+buffer their output, but at a disadvantage too (you can't get the exit status of
+the process, you lose any output that hasn't been read yet when the process
+exits, and stderr gets merged into stdout). It seems there should be ways to
+work around these limitations, but I wasn't able to figure out an way to do it
+(without resorting to C code at least). Given your circumstances, this may fit
+your needs and be a viable solution to you.
+
+Please see the documentation for BackgroundProcess.run for a description of what
+it means when a process chooses to buffer its output.
+
 h2. Author
 
 Tim Harper, on behalf of Lead Media Partners
