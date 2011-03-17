@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
     "MIT-LICENSE",
      "README.textile"
   ]
-  s.files = ["README.textile", "MIT-LICENSE", "Gemfile", "Gemfile.lock", "Rakefile"] + Dir["lib/**/*"] + Dir["spec/**/*"]
+  s.files = ["README.textile", "MIT-LICENSE", "Gemfile", "Gemfile.lock", "Rakefile", ".gemtest"] + Dir["lib/**/*"] + Dir["spec/**/*"]
   s.homepage = %q{http://github.com/timcharper/background_process}
   s.rdoc_options = ["--main", "README.textile"]
   s.require_paths = ["lib"]
