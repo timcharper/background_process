@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = %q{background_process}
-  s.version = "1.2"
+  s.version = "1.3"
 
   s.authors = ["Tim Harper"]
   s.date = Date.today.to_s
