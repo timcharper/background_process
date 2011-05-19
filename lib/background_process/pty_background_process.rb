@@ -11,7 +11,8 @@ class PTYBackgroundProcess < BackgroundProcess
   # * You can't get the exit status
   # * When the process dies, whatever output you haven't read yet is lost.
   # * stderr is merged into stdout
-  def self.run(command)
+  def self.run(*command_with_args)
+    command = sanitize_command(command_with_args)
     thread = Thread.new do # why run PTY separate thread? When a PTY instance
                            # dies, it raises PTY::ChildExited on the thread that
                            # spawned it, interrupting whatever happens to be

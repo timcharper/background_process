@@ -18,6 +18,12 @@ describe PTYBackgroundProcess do
       process.stdin.puts "exit"
       process.wait
     end
+
+    it "allows you to pass an array of args, which are automatically sanitized" do
+      process = PTYBackgroundProcess.run("sh", "-c", "echo hi")
+      process.stdout.gets.chomp.should == "hi"
+    end
+
   end
 
   describe "#exitstatus" do

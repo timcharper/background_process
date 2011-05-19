@@ -21,8 +21,8 @@ class BackgroundProcess
   # If you can't control the program and have it explicitly flush its output when it
   # should, or you can't tell the streams to run in sync mode, see
   # PTYBackgroundProcess.run for a workaround.
-  def self.run(command)
-    command = sanitize_params(command) if command.is_a?(Array)
+  def self.run(*command_with_args)
+    command = sanitize_command(command_with_args)
     child_stdin, parent_stdin = IO::pipe
     parent_stdout, child_stdout = IO::pipe
     parent_stderr, child_stderr = IO::pipe
@@ -99,8 +99,10 @@ class BackgroundProcess
 
   protected
   # It's protected. What do you care? :P
-  def self.sanitize_params(params)
-    params.map { |p| p.gsub(' ', '\ ') }.join(" ")
+  def self.sanitize_command(*args)
+    command_and_args = args.flatten
+    return command_and_args.first if command_and_args.length == 1
+    command_and_args.map { |p| p.gsub(' ', '\ ') }.join(" ")
   end
 
   def select_streams(which)
